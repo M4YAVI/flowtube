@@ -1,0 +1,5 @@
+{
+  "name": "FlowTube - Transcript to Diagram",
+  "description": "Convert YouTube transcripts into accurate Mermaid.js flowcharts instantly using Gemini AI.",
+  "requestFramePermissions": []
+}
