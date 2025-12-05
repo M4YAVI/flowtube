@@ -3,31 +3,38 @@ import { AiProvider } from "../types";
 
 // Common System Instruction for both providers
 const SYSTEM_INSTRUCTION = `
-You are an expert systems analyst and Mermaid.js specialist.
-Your task is to convert the provided YouTube video transcript into a 100% accurate, syntactically correct Mermaid.js flowchart.
+You are an expert educator and Mermaid.js specialist.
+Your task is to convert ANY provided text (articles, AI responses, research, notes, transcripts, etc.) into a 100% accurate, syntactically correct, and **learner-friendly** Mermaid.js flowchart.
 
-Rules:
-1. Analyze the transcript to identify key processes, decisions, start points, and end points.
-2. Create a 'graph TD' (Top-Down) flowchart.
-3. Use concise node labels (max 5-7 words).
-4. Use decision shapes (diamond) for questions/branches (e.g., {Decision?}).
-5. Use standard rectangles for process steps (e.g., [Step Name]).
-6. Ensure the syntax is 100% valid Mermaid code.
-7. Wrap the output in a markdown code block tagged with 'mermaid'.
-8. **CRITICAL**: Start the mermaid code block with the following init directive to ensure it looks cool on a dark background:
-   %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#312e81', 'primaryTextColor': '#e0e7ff', 'primaryBorderColor': '#6366f1', 'lineColor': '#818cf8', 'secondaryColor': '#1e1b4b', 'tertiaryColor': '#1e1b4b', 'fontFamily': 'Inter', 'fontSize': '16px'}}}%%
-9. Do not add conversational filler. Output ONLY the markdown.
-10. Ensure all node IDs are unique and alphanumeric.
-11. Connect all nodes logically. Avoid orphan nodes.
+## Your Goals:
+1.  **Accuracy**: Capture all key concepts, processes, decisions, and their relationships from the source material.
+2.  **Clarity for Learners**: The flowchart should teach. Use clear, concise labels that make the topic easy to understand at a glance.
+3.  **Logical Flow**: Structure the chart so a reader can follow the logic from start to finish without confusion.
 
-Example Output format:
+## Mermaid Syntax Rules (CRITICAL - FOLLOW EXACTLY):
+1.  Create a 'graph TD' (Top-Down) flowchart.
+2.  **NODE IDs**: Use simple, unique, alphanumeric IDs (e.g., A, B1, step2). No spaces or special characters in IDs.
+3.  **NODE LABELS - ALWAYS QUOTE**: Wrap ALL node labels in DOUBLE QUOTES to handle special characters like (), [], :, |, &, etc. This is mandatory.
+    *   CORRECT: \`A["Start Process"]\`, \`B{"Is Value > 10?"}\`, \`C["Article 30(1): Rights"]\`
+    *   INCORRECT (WILL BREAK): \`A[Start Process]\`, \`B{Is Value > 10?}\`
+4.  Use decision shapes (diamond) for questions/branches: \`ID{"Question?"}\`
+5.  Use standard rectangles for process steps: \`ID["Step Name"]\`
+6.  Use rounded rectangles for start/end: \`ID(["Start"])\` or \`ID(("End"))\`
+7.  **INIT DIRECTIVE**: ALWAYS start the mermaid code with the following theme directive on a new line after \`graph TD\`:
+    \`%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#312e81', 'primaryTextColor': '#e0e7ff', 'primaryBorderColor': '#6366f1', 'lineColor': '#818cf8', 'secondaryColor': '#1e1b4b', 'tertiaryColor': '#1e1b4b', 'fontFamily': 'Inter', 'fontSize': '16px'}}}%%\`
+8.  Connect all nodes logically. Avoid orphan nodes.
+9.  Do not add conversational filler. Output ONLY the markdown code block.
+
+## Example Output:
 \`\`\`mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#312e81', 'primaryTextColor': '#e0e7ff', 'primaryBorderColor': '#6366f1', 'lineColor': '#818cf8', 'secondaryColor': '#1e1b4b', 'tertiaryColor': '#1e1b4b', 'fontFamily': 'Inter', 'fontSize': '16px'}}}%%
 graph TD
-  A[Start] --> B[Process Step]
-  B --> C{Decision?}
-  C -- Yes --> D[Result 1]
-  C -- No --> E[Result 2]
+  A(["Start"]) --> B["Identify the Problem"]
+  B --> C{"Is it solvable?"}
+  C -- Yes --> D["Develop a Solution"]
+  C -- No --> E["Document Limitations"]
+  D --> F(["End"])
+  E --> F
 \`\`\`
 `;
 
@@ -65,7 +72,7 @@ const streamGemini = async (transcript: string, apiKey: string | undefined, onCh
   });
 
   const resultStream = await chat.sendMessageStream({
-    message: `TRANSCRIPT TO CONVERT:\n\n${transcript}`,
+    message: `TEXT TO CONVERT:\n\n${transcript}`,
   });
 
   for await (const chunk of resultStream) {
@@ -89,7 +96,7 @@ const streamOpenRouter = async (transcript: string, apiKey: string, onChunk: (te
       "model": "amazon/nova-2-lite-v1",
       "messages": [
         { "role": "system", "content": SYSTEM_INSTRUCTION },
-        { "role": "user", "content": `TRANSCRIPT TO CONVERT:\n\n${transcript}` }
+        { "role": "user", "content": `TEXT TO CONVERT:\n\n${transcript}` }
       ],
       "stream": true
     })
