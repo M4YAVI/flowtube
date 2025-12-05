@@ -42,7 +42,7 @@ export const generateFlowchartStream = async (
   onChunk: (text: string) => void,
   options: { provider: AiProvider; apiKey?: string }
 ): Promise<void> => {
-  
+
   if (options.provider === 'OPENROUTER') {
     if (!options.apiKey) throw new Error("OpenRouter API Key is required");
     await streamOpenRouter(transcript, options.apiKey, onChunk);
@@ -54,7 +54,7 @@ export const generateFlowchartStream = async (
 
 const streamGemini = async (transcript: string, apiKey: string | undefined, onChunk: (text: string) => void) => {
   const ai = getGeminiClient(apiKey);
-  const model = "gemini-3-pro-preview";
+  const model = "gemini-2.5-flash";
 
   const chat = ai.chats.create({
     model: model,
@@ -82,11 +82,11 @@ const streamOpenRouter = async (transcript: string, apiKey: string, onChunk: (te
     headers: {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": window.location.origin, 
+      "HTTP-Referer": window.location.origin,
       "X-Title": "FlowTube",
     },
     body: JSON.stringify({
-      "model": "amazon/nova-2-lite-v1", 
+      "model": "amazon/nova-2-lite-v1",
       "messages": [
         { "role": "system", "content": SYSTEM_INSTRUCTION },
         { "role": "user", "content": `TRANSCRIPT TO CONVERT:\n\n${transcript}` }
@@ -104,7 +104,7 @@ const streamOpenRouter = async (transcript: string, apiKey: string, onChunk: (te
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    
+
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split("\n");
     buffer = lines.pop() || "";
